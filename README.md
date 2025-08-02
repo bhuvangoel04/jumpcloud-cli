@@ -45,7 +45,7 @@ A simple, interactive, menu-driven CLI tool built with `bash` for managing users
 ### Clone and Setup
 
 ```bash
-git clone https://github.com/<yourusername>/jc-cli.git
+git clone https://github.com/bhuvangoel04/jumpcloud-cli.git
 cd jc-cli
 chmod +x jc-cli.sh install.sh
 ./install.sh
