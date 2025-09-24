@@ -21,9 +21,16 @@ mdm_management(){
     echo -e "${C_CYAN}5.${C_OFF} Update Service Discovery URL (ADUE)"
     echo -e "${C_CYAN}6.${C_OFF} Validate Service Discovery URL (ADUE)"
     echo -e "${C_CYAN}7.${C_OFF} List Device Background Tasks"
-    echo -e "${C_CYAN}8.${C_OFF} Return to main menu"
+    echo -e "${C_CYAN}8.${C_OFF} Get ADUE Redirect URL"
+    echo -e "${C_CYAN}9.${C_OFF} Get ADUE JSON Configuration"
+    echo -e "${C_CYAN}10.${C_OFF} Get Google EMM Device Details"
+    echo -e "${C_CYAN}11.${C_OFF} Erase Google EMM Android Device"
+    echo -e "${C_CYAN}12.${C_OFF} Lock Google EMM Device"    
+    echo -e "${C_CYAN}13.${C_OFF} Start Lost Mode (Google EMM)"
+    echo -e "${C_CYAN}14.${C_OFF} Stop Lost Mode (Google EMM)"
+    echo -e "${C_CYAN}15.${C_OFF} Return to main menu"    
     echo -e "${C_PURPLE}========================================${C_OFF}"
-    read -rp "$(echo -e "${C_YELLOW}Choose an option [1-8]: ${C_OFF}")" choice
+    read -rp "$(echo -e "${C_YELLOW}Choose an option [1-15]: ${C_OFF}")" choice
     case "$choice" in
       1) list_abm_devices ;;
       2) enable_lost_mode ;;
@@ -32,7 +39,14 @@ mdm_management(){
       5) update_service_discovery_url ;;
       6) validate_service_discovery_url ;;
       7) list_background_tasks ;;
-      8) return ;;
+      8) get_adue_redirect_url ;;
+      9) get_adue_json_config ;;
+      10) get_google_emm_device ;;
+      11) erase_google_emm_device ;;
+      12) lock_google_emm_device ;;
+      13) start_google_emm_lostmode ;;
+      14) stop_google_emm_lostmode ;;
+      15) return ;;
       *) echo -e "${C_RED}Invalid option. Try again.${C_OFF}" ;;
     esac
   done
@@ -166,4 +180,73 @@ get_adue_json_config() {
   curl -s -X GET \
     -H "x-api-key: $JC_API_KEY" \
     "https://console.jumpcloud.com/api/v2/applemdms/${org_id}/account-driven-service-discovery/config" | jq
+}
+# ----------- Google EMM Functions -----------
+
+get_google_emm_device() {
+  echo -e "${C_BLUE}Fetching Google EMM device details...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+
+  curl -s -X GET \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}" | jq
+}
+
+erase_google_emm_device() {
+  echo -e "${C_BLUE}Erasing Google EMM Android device (work profile & policies will be removed)...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+
+  curl -s -X POST \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/erase-device" | jq
+}
+lock_google_emm_device() {
+  echo -e "${C_BLUE}Locking Google EMM device...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+
+  curl -s -X POST \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -d '{}' \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/lock" | jq
+}
+
+start_google_emm_lostmode() {
+  echo -e "${C_BLUE}Starting Lost Mode for Google EMM device...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+  read -rp "$(echo -e "${C_YELLOW}Enter Email Address: ${C_OFF}")" email
+  read -rp "$(echo -e "${C_YELLOW}Enter Lost Message: ${C_OFF}")" message
+  read -rp "$(echo -e "${C_YELLOW}Enter Organization Name: ${C_OFF}")" org
+  read -rp "$(echo -e "${C_YELLOW}Enter Phone Number: ${C_OFF}")" phone
+  read -rp "$(echo -e "${C_YELLOW}Enter Street Address: ${C_OFF}")" address
+
+  curl -s -X POST \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"emailAddress\": \"$email\",
+      \"lostMessage\": \"$message\",
+      \"organizationName\": \"$org\",
+      \"phoneNumber\": \"$phone\",
+      \"streetAddress\": \"$address\"
+    }" \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/lostmode/start" | jq
+}
+
+stop_google_emm_lostmode() {
+  echo -e "${C_BLUE}Stopping Lost Mode for Google EMM device...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+
+  curl -s -X POST \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -d '{}' \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/lostmode/stop" | jq
 }
