@@ -28,7 +28,9 @@ mdm_management(){
     echo -e "${C_CYAN}12.${C_OFF} Lock Google EMM Device"    
     echo -e "${C_CYAN}13.${C_OFF} Start Lost Mode (Google EMM)"
     echo -e "${C_CYAN}14.${C_OFF} Stop Lost Mode (Google EMM)"
-    echo -e "${C_CYAN}15.${C_OFF} Return to main menu"    
+    echo -e "${C_CYAN}15.${C_OFF} Get the policy JSON of a device"
+    echo -e "${C_CYAN}16.${C_OFF} Reboot device"   
+    echo -e "${C_CYAN}17.${C_OFF} Return to main menu"    
     echo -e "${C_PURPLE}========================================${C_OFF}"
     read -rp "$(echo -e "${C_YELLOW}Choose an option [1-15]: ${C_OFF}")" choice
     case "$choice" in
@@ -46,7 +48,9 @@ mdm_management(){
       12) lock_google_emm_device ;;
       13) start_google_emm_lostmode ;;
       14) stop_google_emm_lostmode ;;
-      15) return ;;
+      15) get_google_emm_device_policy ;;
+      16) reboot_google_emm_device ;;
+      17) return ;;
       *) echo -e "${C_RED}Invalid option. Try again.${C_OFF}" ;;
     esac
   done
@@ -250,3 +254,28 @@ stop_google_emm_lostmode() {
     -d '{}' \
     "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/lostmode/stop" | jq
 }
+
+get_google_emm_device_policy() {
+  echo -e "${C_BLUE}Fetching Google EMM Device Policy JSON...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+
+  curl -s -X GET \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/policy_results" | jq
+}
+
+reboot_google_emm_device() {
+  echo -e "${C_BLUE}Rebooting Google EMM device...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+
+  curl -s -X POST \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -d '{}' \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/reboot" | jq
+}
+
+
