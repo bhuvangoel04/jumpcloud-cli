@@ -1,4 +1,5 @@
 #!/bin/bash
+# github.com/bhuvangoel04
 # MDM Management module
 
 # ----------------- Colors -----------------
@@ -28,8 +29,9 @@ mdm_management(){
     echo -e "${C_CYAN}12.${C_OFF} Lock Google EMM Device"    
     echo -e "${C_CYAN}13.${C_OFF} Start Lost Mode (Google EMM)"
     echo -e "${C_CYAN}14.${C_OFF} Stop Lost Mode (Google EMM)"
-    echo -e "${C_CYAN}15.${C_OFF} Get the policy JSON of a device"
-    echo -e "${C_CYAN}16.${C_OFF} Reboot device"   
+    echo -e "${C_CYAN}15.${C_OFF} Get the policy JSON of a Google EMM device"
+    echo -e "${C_CYAN}16.${C_OFF} Reboot Google EMM device"   
+    echo -e "${C_CYAN}16.${C_OFF} Reset password for Google EMM device"
     echo -e "${C_CYAN}17.${C_OFF} Return to main menu"    
     echo -e "${C_PURPLE}========================================${C_OFF}"
     read -rp "$(echo -e "${C_YELLOW}Choose an option [1-15]: ${C_OFF}")" choice
@@ -50,7 +52,8 @@ mdm_management(){
       14) stop_google_emm_lostmode ;;
       15) get_google_emm_device_policy ;;
       16) reboot_google_emm_device ;;
-      17) return ;;
+      17) reset_google_emm_device_password ;;
+      18) return ;;
       *) echo -e "${C_RED}Invalid option. Try again.${C_OFF}" ;;
     esac
   done
@@ -279,3 +282,16 @@ reboot_google_emm_device() {
 }
 
 
+reset_google_emm_device_password() {
+  echo -e "${C_BLUE}Resetting Google EMM Device Password...${C_OFF}"
+  read -rp "$(echo -e "${C_YELLOW}Enter Device ID: ${C_OFF}")" device_id
+  read -srp "$(echo -e "${C_YELLOW}Enter New Password (input hidden): ${C_OFF}")" new_password
+  echo
+
+  curl -s -X POST \
+    -H "x-api-key: $JC_API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -d "{\"newPassword\":\"$new_password\"}" \
+    "https://console.jumpcloud.com/api/v2/google-emm/devices/${device_id}/resetpassword"
+}
